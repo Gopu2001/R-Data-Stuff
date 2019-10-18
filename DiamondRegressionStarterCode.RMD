@@ -1,0 +1,62 @@
+---
+title: "Kaggle Tracy Regression Competition"
+output:
+  html_document: default
+  html_notebook: default
+---
+
+This is a chunk of starter code to allow you to begin developing your scripts for the Kaggle Tracy Regression competition. To find the competition, go to https://www.kaggle.com/c/tracy-regression and read the overview of the competition. You can download the files from there.
+
+Kaggle usually expects that the training and test files are in an input directory, so that is how this is configured.
+
+I am using github, so my directories are in a github tree. First, we establish the working directory.
+
+```{r}
+library(ggplot2)
+
+setwd("~/GitHub/DataScienceCurriculum/DataScienceCurriculum/DiamondRegression")
+
+# read the input files
+
+train = read.csv ("input/train.csv")
+test = read.csv ("input/test.csv")
+sample_submission = read.csv("input/sample_submission.csv")
+
+head(train)
+head(test)
+head(sample_submission)
+
+```
+
+For a sample submission, just do a simple linear regression on the log of price vs. carat
+
+```{r}
+
+lmod = lm(log1p(price) ~ carat, data=train)
+
+# it is necessary to cover the predicted values back to non-log values 
+# use the exp function
+
+train.predict <- exp(predict(lmod)) - 1
+test.predict = exp(predict(lmod, newdata=test)) -1
+benchmark_submission = sample_submission
+benchmark_submission$price = test.predict
+write.csv(benchmark_submission,"benchmark_submission.csv",row.names = F)
+
+```
+
+We can compute the RMSE of the log value with this code
+
+```{r}
+
+RSS <- c(crossprod(lmod$residuals))
+
+MSE <- RSS / length(lmod$residuals)
+
+#Root MSE:
+
+RMSE <- sqrt(MSE)
+RMSE
+
+```
+
